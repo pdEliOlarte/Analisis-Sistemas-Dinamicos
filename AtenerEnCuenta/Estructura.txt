@@ -1,0 +1,75 @@
+### Estructura General del Proyecto
+
+```text
+proyecto_sistemas_dinamicos/
+├── CMakeLists.txt
+├── README.md
+├── include/
+│   ├── Matrix2D.hpp
+│   ├── SystemAnalyzer.hpp
+│   └── TrajectoryExporter.hpp
+├── src/
+│   ├── main.cpp
+│   ├── Matrix2D.cpp
+│   ├── SystemAnalyzer.cpp
+│   └── TrajectoryExporter.cpp
+└── scripts/
+    └── plot_phase_portrait.py
+
+```
+
+
+
+---
+
+### Descripción de Módulos y Archivos
+
+#### 1. Archivos de Configuración y Documentación
+
+    * **`CMakeLists.txt`**: Archivo de construcción para compilar el proyecto en C++ de manera modular utilizando estándares modernos (C++17).
+    * **`README.md`**: Guía con las instrucciones de compilación, ejecución y explicaciones teóricas sobre la clasificación de puntos críticos según los valores propios.
+
+
+#### 2. Encabezados (`include/`) y Fuentes (`src/`)
+
+    * **`Matrix2D.hpp` / `Matrix2D.cpp**`:
+        * Define la estructura y coeficientes de la matriz $A = \begin{pmatrix} a_1 & b_1 \\ a_2 & b_2 \end{pmatrix}$ del sistema lineal $x' = a_1 x + b_1 y$, $y' = a_2 x + b_2 y$.
+        * Implementa funciones para calcular el determinante $\det(A) = a_1 b_2 - a_2 b_1$, la traza $\text{Tr}(A) = a_1 + b_2$ y los valores propios $\lambda_1, \lambda_2$.
+
+    * **`SystemAnalyzer.hpp` / `SystemAnalyzer.cpp**`:
+        * Evalúa si $\det(A) = 0$ para comprobar la condición de unicidad.
+        * Si $\det(A) = 0$, emite en consola la advertencia: `EL PUNTO CRITICO (0,0) NO ES UNICO`.
+        * Si el punto es único, evalúa la parte real y compleja de los valores propios para clasificar el tipo de punto crítico (Nodo, Punto Silla, Foco/Espiral o Centro).
+        * Determina la estabilidad cualitativa del sistema (Asintóticamente Estable, Inestable o Estable).
+
+    * **`TrajectoryExporter.hpp` / `TrajectoryExporter.cpp**`:
+        * Integra numéricamente las ecuaciones diferenciales alrededor del origen usando un método iterativo (como Runge-Kutta de 4º orden).
+        * Genera y exporta las coordenadas de las trayectorias y el campo de vectores hacia un archivo de datos (CSV o JSON) para la herramienta de visualización gráfica.
+
+    * **`main.cpp`**:
+        * Captura los datos de entrada para los coeficientes $a_1, b_1, a_2, b_2$ ingresados por el usuario.
+        * Ejecuta el análisis de estabilidad y tipo de punto crítico en C++.
+        * Llama automáticamente al script de visualización o exporta los datos requeridos para mostrar las trayectorias alrededor de $(0,0)$.
+
+
+#### 3. Módulo de Visualización Gráfica (`scripts/`)
+
+    * **`plot_phase_portrait.py`**:
+        * Funciona como la herramienta informática para representar geométricamente el retrato de fase.
+        * Lee la matriz $A$ o los datos exportados por C++ para graficar el campo vectorial y las curvas solución en el plano $(x, y)$ utilizando bibliotecas como Matplotlib y NumPy.
+
+
+
+El orden recomendado para implementar y construir los archivos del proyecto sigue una jerarquía basada en sus dependencias (desde las clases base independientes hasta la integración final y herramientas externas):
+1. include/Matrix2D.hpp y src/Matrix2D.cppRazón: Es la base matemática del proyecto. 
+    Define la estructura de la matriz $A$ con los coeficientes $a_1, b_1, a_2, b_2$ e implementa las funciones para calcular la traza, el determinante y los valores propios ($\lambda_1, \lambda_2$). No depende de ningún otro módulo del sistema. 
+2. include/SystemAnalyzer.hpp y src/SystemAnalyzer.cppRazón: Depende directamente de Matrix2D. 
+    Recibe la matriz para comprobar si $\det(A) = 0$ (emitiendo el mensaje de falta de unicidad si aplica) y aplica las condiciones lógicas para determinar el tipo de punto crítico y la estabilidad.   
+3. include/TrajectoryExporter.hpp y src/TrajectoryExporter.cppRazón: Depende de Matrix2D. 
+    Implementa los métodos de integración numérica (como Runge-Kutta) para calcular y guardar las coordenadas $(x, y)$ de las trayectorias que se enviarán al módulo gráfico.   
+4. scripts/plot_phase_portrait.pyRazón: Funciona como el módulo de visualización gráfica externa. 
+    Puede probarse de forma independiente pasando valores de prueba para verificar que dibuje correctamente las trayectorias y el campo vectorial.   
+5. src/main.cppRazón: Es el punto de entrada del programa. 
+    Integra todos los módulos anteriores: captura las entradas del usuario, invoca a SystemAnalyzer, ejecuta TrajectoryExporter y llama al script de Python.   
+6. CMakeLists.txtRazón: Es el archivo de configuración de compilación. 
+    Aunque puede crearse un borrador inicial, se finaliza cuando la estructura de archivos .hpp y .cpp ya está definida para enlazar las dependencias y generar el ejecutable.

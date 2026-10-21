@@ -1,0 +1,79 @@
+Un punto crítico (o de equilibrio) de un sistema autónomo \(\dot{\mathbf{x}} = \mathbf{F}(\mathbf{x})\) es aquel donde \(\mathbf{F}(\mathbf{x}) = \mathbf{0}\). Para sistemas lineales, estos puntos se obtienen resolviendo un sistema algebraico; para no lineales, se requiere resolver un sistema de ecuaciones (a menudo mediante métodos numéricos) y luego linealizar alrededor de cada solución para estudiar su estabilidad y tipo.
+
+### 📝 Algoritmo para Hallar Puntos Críticos
+
+**1. Sistemas Lineales (\(\dot{\mathbf{x}} = A\mathbf{x} + \mathbf{b}\))**
+El punto crítico \(\mathbf{x}^*\) satisface \(A\mathbf{x}^* + \mathbf{b} = \mathbf{0}\). Si \(\det(A) \neq 0\), existe una solución única dada por \(\mathbf{x}^* = -A^{-1}\mathbf{b}\). Si \(\det(A) = 0\), el sistema puede no tener puntos críticos o tener infinitos (una recta o plano de equilibrios).
+
+**2. Sistemas No Lineales (\(\dot{\mathbf{x}} = \mathbf{F}(\mathbf{x})\))**
+Se debe resolver el sistema algebraico \(\mathbf{F}(\mathbf{x}) = \mathbf{0}\).
+- **Método Analítico:** Despejar variables para encontrar las intersecciones de las curvas \(f_1(x,y)=0\) y \(f_2(x,y)=0\).
+- **Método Numérico:** Si el despeje es complejo, usar métodos iterativos como Newton-Raphson. Se parte de una suposición inicial \(\mathbf{x}_0\) y se itera usando el Jacobiano: \(\mathbf{x}_{k+1} = \mathbf{x}_k - [J(\mathbf{x}_k)]^{-1} \mathbf{F}(\mathbf{x}_k)\) hasta que \(\|\mathbf{F}(\mathbf{x}_{k+1})\|\) sea suficientemente pequeño .
+
+---
+
+### 📊 Criterios de Estabilidad y Tipo de Punto Crítico
+
+Para un sistema **lineal** \(\dot{\mathbf{x}} = A\mathbf{x}\) (o la **linealización** de uno no lineal \(\dot{\mathbf{u}} = J(\mathbf{x}^*)\mathbf{u}\)), el tipo y la estabilidad dependen de los valores propios \(\lambda_1, \lambda_2\) de la matriz \(A\) (o del Jacobiano \(J\)).
+
+Para determinar el tipo de punto crítico y su estabilidad en un sistema, se analizan los valores propios (lambda). Si ambos valores propios son reales y positivos, el punto es un nodo inestable. Si ambos son reales y negativos, se trata de un nodo asintóticamente estable. Cuando los valores propios son reales pero tienen signos opuestos, con uno positivo mayor que cero y el otro negativo, el punto crítico es un punto silla, el cual es inestable. Por otro lado, si los valores propios son complejos con parte real mayor que cero, el punto es un foco espiral inestable; mientras que si la parte real es menor que cero, el foco espiral es asintóticamente estable. En el caso de tener valores propios puramente imaginarios, representados como más o menos i omega, el punto es un centro, clasificado como estable pero no asintótico. Adicionalmente, cuando los valores propios son repetidos e iguales, el tipo específico de nodo, ya sea estrella o impropio, dependerá de si la matriz es diagonalizable, pero su estabilidad se seguirá rigiendo por el signo de dichos valores.
+
+*Nota: Para valores propios repetidos (\(\lambda_1 = \lambda_2\)), el tipo exacto (nodo estrella o impropio) depende de si la matriz es diagonalizable, pero la estabilidad sigue la regla del signo de \(\lambda\).*
+
+### 🧠 Criterio según el Teorema de Hartman-Grobman
+
+Este teorema permite usar la linealización para clasificar sistemas **no lineales** cerca de un punto crítico, siempre que se cumpla una condición clave: **hiperbolicidad**.
+
+- **Condición:** El punto crítico \(\mathbf{x}^*\) es **hiperbólico** si la matriz Jacobiana \(J(\mathbf{x}^*)\) **no tiene valores propios con parte real nula** (es decir, ningún \(\lambda\) es puramente imaginario o cero).
+- **Conclusión:** Si el punto es hiperbólico, el comportamiento topológico de las trayectorias del sistema no lineal cerca de \(\mathbf{x}^*\) es cualitativamente **idéntico** (topológicamente equivalente) al de su linealización \(\dot{\mathbf{u}} = J(\mathbf{x}^*)\mathbf{u}\). Por lo tanto, puedes aplicar la tabla de arriba para determinar el tipo y la estabilidad.
+- **Limitación:** Si hay valores propios con parte real cero (p. ej., un Centro en la linealización), el teorema **no aplica**. El término no lineal puede hacer que el punto sea estable, inestable o un centro, y se requiere un análisis más profundo (como el Teorema de la Variedad Central).
+
+---
+
+### 🗺️ Algoritmo para Construir el Diagrama de Fases
+
+El diagrama de fases es la representación geométrica de las trayectorias en el plano \((x, y)\). Un algoritmo práctico para construirlo (especialmente para sistemas 2D) es el siguiente:
+
+1.  **Hallar los Puntos Críticos:** Localiza todos los \(\mathbf{x}^*\) donde \(\mathbf{F}(\mathbf{x}^*) = \mathbf{0}\). Estos son los "esqueletos" del diagrama.
+2.  **Clasificar cada Punto Crítico:** Calcula el Jacobiano \(J\) en cada punto, obtén sus valores propios y usa la tabla (junto con Hartman-Grobman si aplica) para determinar si es nodo, silla, foco o centro, y su estabilidad.
+3.  **Dibujar las Trayectorias Principales (Variedades):**
+    - Para **Nodos y Sillas**: Calcula los **vectores propios**. Las trayectorias tienden a acercarse o alejarse del punto a lo largo de las rectas definidas por estos vectores (las variedades estable e inestable). En una silla, las trayectorias se acercan por la dirección del vector propio asociado al valor propio negativo y se alejan por la del positivo .
+    - Para **Focos y Centros**: No uses vectores propios (son complejos); dibuja espirales (focos) o elipses (centros) alrededor del punto, indicando el sentido de giro (horario/antihorario) analizando el signo de \(\dot{x}\) o \(\dot{y}\) en un punto sencillo .
+4.  **Usar el Método de las Isoclinas (para el resto del plano):**
+    - La **isoclina** es la curva donde la pendiente de las trayectorias es constante: \(\frac{dy}{dx} = \frac{g(x,y)}{f(x,y)} = C\).
+    - Dibuja varias isoclinas para distintos valores de \(C\) (especialmente \(C=0\) para máximos/mínimos y \(C=\infty\) para tangentes verticales). Sobre cada isoclina, dibuja pequeños segmentos de recta con la pendiente \(C\) correspondiente. Esto genera un **campo de direcciones** .
+5.  **Trazar las Trayectorias:** Une los segmentos del campo de direcciones con curvas suaves, respetando las direcciones de flujo (las flechas) y las variedades dibujadas en el paso 3, para completar el retrato cualitativo del sistema.
+
+
+
+
+1. SystemAnalyzer.cpp (Lógica de Decisión y Clasificación)
+    Este archivo contendrá las estructuras condicionales (if / else) que aplican los teoremas de sistemas dinámicos:
+    - Comprobación de Unicidad:Si $\det(A) = 0$, emite el mensaje: "EL PUNTO CRITICO (0,0) NO ES UNICO".   
+    - Clasificación del Tipo de Punto Crítico:
+        Punto Silla: Valores propios reales con signos opuestos ($\lambda_1 > 0 > \lambda_2$).
+        Nodo: Valores propios reales con el mismo signo.
+        Foco (Espiral): Valores propios complejos conjugados con parte real no nula ($\alpha \pm i\beta$, $\alpha \neq 0$).
+        Centro: Valores propios imaginarios puros ($\pm i\beta$, parte real $\alpha = 0$).
+    - Determinación de Estabilidad:
+        Asintóticamente Estable: Todos los valores propios tienen parte real estrictamente negativa ($\text{Re}(\lambda) < 0$).
+        Inestable: Al menos un valor propio tiene parte real positiva ($\text{Re}(\lambda) > 0$).
+        Estable (no asintótico): Valores propios imaginarios puros (caso Centro).
+2. Matrix2D.cpp (Insumos Matemáticos)
+    Aunque no contiene los if/else de clasificación, este archivo realiza los cálculos que SystemAnalyzer utiliza como entrada:
+    - Cálculo de la Traza: $\text{Tr}(A) = a_1 + b_2$.
+    - Cálculo del Determinante: $\det(A) = a_1 b_2 - a_2 b_1$.
+    - Cálculo del Discriminante: $\Delta = \text{Tr}(A)^2 - 4\det(A)$.
+    - Obtención de los valores propios ($\lambda_1, \lambda_2$).
+
+
+
+
+Evaluación y Linealización mediante el Jacobiano $J(\mathbf{x}^*)$:
+    Para un sistema no lineal, el programa verifica primero que el origen $(0,0)$ sea un punto crítico ($f(0,0)=0$ y $g(0,0)=0$).
+    Calcula la matriz Jacobiana evaluada en el origen:$$J(0,0) = \begin{pmatrix} \frac{\partial f}{\partial x}(0,0) & \frac{\partial f}{\partial y}(0,0) \\ \frac{\partial g}{\partial x}(0,0) & \frac{\partial g}{\partial y}(0,0) \end{pmatrix}$$Aplicación del Teorema de Hartman-Grobman 
+    (Criterio de Hiperbolicidad):Punto Hiperbólico ($\text{Re}(\lambda) \neq 0$): Si ningún valor propio de $J(0,0)$ tiene parte real igual a cero, el comportamiento cualitativo del sistema no lineal alrededor de $(0,0)$ es topológicamente equivalente al de su linealización $\dot{\mathbf{u}} = J(0,0)\mathbf{u}$.
+    Punto No Hiperbólico ($\text{Re}(\lambda) = 0$): Si existen valores propios con parte real nula (por ejemplo, cuando la linealización predice un Centro con $\lambda = \pm i\omega$), el Teorema de Hartman-Grobman NO aplica. 
+    El programa emite un mensaje indicando que los términos no lineales pueden alterar la estabilidad (transformándolo en un foco estable/inestable o centro verdadero).
+    
+    Selección Dinámica en main.cpp:Al iniciar, el programa despliega un menú interactivo para que el usuario elija entre evaluar un Sistema Lineal o un Sistema No Lineal.
