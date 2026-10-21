@@ -47,7 +47,6 @@ int main() { // Función principal que coordina el flujo global de ejecución de
     TrajectoryExporter exporter; // Instancia el exportador y simulador numérico mediante Runge-Kutta 4.
     std::string csvFilename = "trajectories.csv"; // Define el nombre estándar del archivo CSV de salida.
     bool exportSuccess = false; // Bandera de control para verificar si la exportación a CSV fue exitosa.
-    bool skippedByDesign = false; // true => se omite la simulación a propósito (punto crítico no aislado).
 
     if (option == 1) { // Caso 1: El usuario seleccionó analizar un sistema lineal.
         double a1, b1, a2, b2; // Declara las variables para los coeficientes de la matriz del sistema lineal.
@@ -71,12 +70,11 @@ int main() { // Función principal que coordina el flujo global de ejecución de
         AnalysisResult result = analyzer.analyze(systemMatrix); // Realiza el análisis analítico de estabilidad y punto crítico.
         analyzer.printReport(result); // Imprime el informe detallado en pantalla.
 
-        if (result.isUnique) { // Solo simula si el punto crítico es aislado/único.
-            exportSuccess = exporter.exportSimulationData(systemMatrix, csvFilename); // Ejecuta la simulación RK4 lineal.
-        } else { // Punto no único: graficar "alrededor del origen" seria engañoso.
-            skippedByDesign = true; // Marca la omisión intencional para no reportarla como error.
-            std::cout << "\n[AVISO] Se omite la simulacion y el retrato de fase: el origen no es un punto critico aislado.\n"; // Aviso explicito.
-        } // Fin de la condición de unicidad.
+        if (!result.isUnique) { // Avisa que, aunque no sea único, igual se simula para mostrar el comportamiento.
+            std::cout << "\n[AVISO] El origen no es un punto critico aislado; aun asi se grafica el retrato de fase para mostrar el comportamiento del campo.\n"; // Aviso informativo.
+        } // Fin de la advertencia por punto no único.
+
+        exportSuccess = exporter.exportSimulationData(systemMatrix, csvFilename); // Ejecuta la simulación RK4 lineal (siempre, sea único o no).
     } else if (option == 2) { // Caso 2: El usuario seleccionó analizar un sistema no lineal.
         std::cout << "--- Sistema No Lineal Cuadratico General con Terminos Cruzados ---\n"; // Encabezado de la opción no lineal.
         std::cout << "Modelo: x' = a1*x + b1*y + c1*x^2 + d1*y^2 + e1*x*y\n"; // Muestra el modelo matemático expandido para x'.
@@ -116,12 +114,11 @@ int main() { // Función principal que coordina el flujo global de ejecución de
         AnalysisResult result = analyzer.analyzeNonLinear(nonLinearSys, 0.0, 0.0); // Evalúa el Jacobiano en (0,0) y verifica la hiperbolicidad (Hartman-Grobman).
         analyzer.printReport(result); // Imprime el diagnóstico del punto de equilibrio en pantalla.
 
-        if (result.isUnique) { // Solo simula si (0,0) es un punto crítico de equilibrio válido.
-            exportSuccess = exporter.exportSimulationDataNonLinear(nonLinearSys, csvFilename); // Ejecuta la integración numérico-temporal RK4 no lineal.
-        } else { // (0,0) no es crítico o no es aislado: no tiene sentido retrato alrededor del origen.
-            skippedByDesign = true; // Marca la omisión intencional para no reportarla como error.
-            std::cout << "\n[AVISO] Se omite la simulacion y el retrato de fase: el origen no es un punto critico aislado.\n"; // Aviso explicito.
-        } // Fin de la condición de unicidad.
+        if (!result.isUnique) { // Avisa que, aunque el origen no sea un punto crítico válido, igual se grafica el campo.
+            std::cout << "\n[AVISO] El origen no es un punto critico aislado; aun asi se grafica el retrato de fase para mostrar el comportamiento del campo.\n"; // Aviso informativo.
+        } // Fin de la advertencia por punto no único.
+
+        exportSuccess = exporter.exportSimulationDataNonLinear(nonLinearSys, csvFilename); // Ejecuta la integración numérico-temporal RK4 no lineal (siempre).
     } else { // Manejo de selección inválida.
         std::cout << "Opcion no valida. Saliendo del programa.\n"; // Notifica la entrada incorrecta.
         return 1; // Retorna código de error 1.
@@ -137,10 +134,8 @@ int main() { // Función principal que coordina el flujo global de ejecución de
         } else { // El script termino correctamente.
             std::cout << "[OK] Retrato de fase generado en phase_portrait.png\n"; // Confirma la generacion de la imagen.
         } // Fin de la verificación del código de retorno.
-    } else { // En caso de fallo REAL en la simulación (la omisión intencional no es un error).
-        if (!skippedByDesign) { // Solo reporta error si la omisión no fue a proposito.
-            std::cerr << "Error: Ocurrio un fallo al generar o exportar la simulacion numerica.\n"; // Reporta el error en el flujo de salida de errores std::cerr.
-        } // Fin de la proteccion contra la omision intencional.
+    } else { // En caso de fallo en la simulación.
+        std::cerr << "Error: Ocurrio un fallo al generar o exportar la simulacion numerica.\n"; // Reporta el error en el flujo de salida de errores std::cerr.
     } // Fin de la verificación de exportación.
 
     return 0; // Finaliza la ejecución del programa sin errores.
