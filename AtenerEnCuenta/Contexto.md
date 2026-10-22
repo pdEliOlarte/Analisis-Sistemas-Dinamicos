@@ -6,7 +6,7 @@
 
 Programa de cómputo (tarea universitaria de sistemas dinámicos) que, dados los coeficientes de un sistema de EDOs 2D, responde:
 
-1. **¿Es (0,0) un punto crítico único?** Si no lo es, lo informa y omite la simulación.
+1. **¿Es (0,0) un punto crítico único?** Si no lo es, lo informa pero igual grafica el retrato de fase.
 2. **¿Qué tipo de punto crítico es?** Nodo, nodo estrella, nodo impropio, punto silla, foco (espiral) o centro.
 3. **¿Es estable?** Asintóticamente estable, estable (no asintótico) o inestable.
 4. **¿Cómo se ven las trayectorias?** Retrato de fase (campo de direcciones + órbitas) alrededor del origen.
@@ -34,7 +34,7 @@ La lógica de decisión implementada en `SystemAnalyzer` replica exactamente la 
 | Re(λ) = 0 para ambos (centro) | Estable (no asintótico) |
 | Re(λ) > 0 para alguno | Inestable |
 
-`det(A) = 0` ⇒ **"EL PUNTO CRITICO (0,0) NO ES UNICO"** (el origen no es un punto crítico aislado) y se omite la simulación.
+`det(A) = 0` ⇒ **"EL PUNTO CRITICO (0,0) NO ES UNICO"** (el origen no es un punto crítico aislado); aun así se grafica el retrato de fase para mostrar el comportamiento del campo.
 
 ## Arquitectura
 
@@ -64,7 +64,7 @@ app.py (Streamlit) ──► ejecuta build/SistemasDinamicos.exe como subprocess
 
 - **Epsilon de singularidad** `SINGULARITY_EPS = 1e-12` en la detección de `det ≈ 0`: evita clasificar como silla matrices numéricamente degeneradas (ver T22/T23 en `TESTPLAN.md`).
 - **Validación de entrada**: `nan`/`inf`/no numéricos ⇒ `entrada no valida` + exit 1 (ver T27–T29).
-- **Omisión de la simulación si no único**: si el origen no es punto crítico aislado, graficar "alrededor del origen" sería engañoso; se imprime `[AVISO]` y no se tocan el CSV ni el PNG.
+- **Gráfica también si no único**: si el origen no es punto crítico aislado (`det = 0`), se mantiene el mensaje obligatorio `EL PUNTO CRITICO (0,0) NO ES UNICO` y se imprime `[AVISO] ... aun asi se grafica ...`; la simulación corre igual y se generan CSV y PNG (decisión del profesor: graficar de todas maneras los puntos que no pueden clasificarse).
 - **Distinción estrella/impropio**: con valores propios repetidos, si `A = λI` es nodo estrella; si no, nodo impropio.
 - **Ejes PNG fijos** (±rango simétrico) para que la gráfica no "respire" entre corridas.
 - **DLLs de MinGW junto al exe**: el ejecutable corre en cualquier terminal o con doble clic, sin depender del PATH.
@@ -72,6 +72,6 @@ app.py (Streamlit) ──► ejecuta build/SistemasDinamicos.exe como subprocess
 
 ## Archivos de verificación
 
-- `TESTPLAN.md`: los 37 checks de la suite C++ + los 19 de la suite web, formateados para la app.
+- `TESTPLAN.md`: los 37 checks de la suite C++ + los 20 de la suite web, formateados para la app.
 - `tests/test_program.py`: suite de caja negra del exe (37 checks).
-- `tests/test_app_e2e.py`: suite e2e de la interfaz web con Streamlit AppTest (19 checks).
+- `tests/test_app_e2e.py`: suite e2e de la interfaz web con Streamlit AppTest (20 checks).

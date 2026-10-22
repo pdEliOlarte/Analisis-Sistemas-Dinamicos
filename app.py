@@ -198,8 +198,21 @@ def build_figure(df):
 
 
 def build_html_report(result, fig, system_label):
-    tipo = TIPO_LABEL.get(result["tipo"], result["tipo"])
-    est = ESTABILIDAD_LABEL.get(result["estabilidad"], result["estabilidad"])
+    if result.get("unique"):
+        tipo = TIPO_LABEL.get(result["tipo"], result["tipo"])
+        est = ESTABILIDAD_LABEL.get(result["estabilidad"], result["estabilidad"])
+        cards = (
+            f'<div class="card"><div class="label">Tipo de punto crítico</div>'
+            f'<div class="value">{tipo}</div></div>'
+            f'<div class="card"><div class="label">Estabilidad</div>'
+            f'<div class="value">{est}</div></div>'
+        )
+    else:
+        mensaje = result.get("mensaje") or "EL PUNTO CRITICO (0,0) NO ES UNICO"
+        cards = (
+            f'<div class="card"><div class="label">Clasificación</div>'
+            f'<div class="value">{mensaje}</div></div>'
+        )
     warning = ""
     if result["hg_no_aplica"]:
         warning = (
@@ -235,10 +248,7 @@ h1 {{ font-size: 1.35rem; font-weight: 650; margin-bottom: 0.2rem; }}
 <body>
 <h1>Análisis de sistemas dinámicos 2D</h1>
 <div class="sub">Tipo y estabilidad del punto crítico (0,0) — {system_label}</div>
-<div class="card"><div class="label">Tipo de punto crítico</div>
-<div class="value">{tipo}</div></div>
-<div class="card"><div class="label">Estabilidad</div>
-<div class="value">{est}</div></div>
+{cards}
 {warning}
 {fig_html}
 </body>
@@ -296,11 +306,11 @@ with st.sidebar:
         if mode == "Sistema lineal":
             c1, c2 = st.columns(2)
             with c1:
-                a1 = st.number_input("a1", value=1.0, step=0.1, key="l_a1")
-                a2 = st.number_input("a2", value=0.0, step=0.1, key="l_a2")
+                a1 = st.number_input("a1(Coeficiente de x en  x')", value=1.0, step=1.0, key="l_a1")
+                a2 = st.number_input("a2(Coeficiente de x en  y')", value=0.0, step=1.0, key="l_a2")
             with c2:
-                b1 = st.number_input("b1", value=0.0, step=0.1, key="l_b1")
-                b2 = st.number_input("b2", value=-1.0, step=0.1, key="l_b2")
+                b1 = st.number_input("b1(Coeficiente de y en  x')", value=0.0, step=1.0, key="l_b1")
+                b2 = st.number_input("b2(Coeficiente de y en  y')", value=-1.0, step=1.0, key="l_b2")
             submitted = st.form_submit_button("Simular", width="stretch")
             input_data = f"1\n{a1}\n{b1}\n{a2}\n{b2}\n"
             system_label = f"Sistema lineal: a1={a1}, b1={b1}, a2={a2}, b2={b2}"
@@ -308,18 +318,18 @@ with st.sidebar:
             eq1, eq2 = st.columns(2)
             with eq1:
                 st.markdown("Ecuación x'")
-                na1 = st.number_input("a1", value=-1.0, step=0.1, key="n_a1")
-                nb1 = st.number_input("b1", value=-1.0, step=0.1, key="n_b1")
-                nc1 = st.number_input("c1", value=1.0, step=0.1, key="n_c1")
-                nd1 = st.number_input("d1", value=0.0, step=0.1, key="n_d1")
-                ne1 = st.number_input("e1", value=0.0, step=0.1, key="n_e1")
+                na1 = st.number_input("a1(Coeficiente de x en  x')", value=-1.0, step=1.0, key="n_a1")
+                nb1 = st.number_input("b1(Coeficiente de y en  x')", value=-1.0, step=1.0, key="n_b1")
+                nc1 = st.number_input("c1(Coeficiente de x en  y')", value=1.0, step=1.0, key="n_c1")
+                nd1 = st.number_input("d1(Coeficiente de y en  x')", value=0.0, step=1.0, key="n_d1")
+                ne1 = st.number_input("e1(Coeficiente de y en  y')", value=0.0, step=1.0, key="n_e1")
             with eq2:
                 st.markdown("Ecuación y'")
-                na2 = st.number_input("a2", value=1.0, step=0.1, key="n_a2")
-                nb2 = st.number_input("b2", value=-1.0, step=0.1, key="n_b2")
-                nc2 = st.number_input("c2", value=0.0, step=0.1, key="n_c2")
-                nd2 = st.number_input("d2", value=0.0, step=0.1, key="n_d2")
-                ne2 = st.number_input("e2", value=0.0, step=0.1, key="n_e2")
+                na2 = st.number_input("a2(Coeficiente de x en  y')", value=1.0, step=1.0, key="n_a2")
+                nb2 = st.number_input("b2(Coeficiente de y en  y')", value=-1.0, step=1.0, key="n_b2")
+                nc2 = st.number_input("c2(Coeficiente de x en  y')", value=0.0, step=1.0, key="n_c2")
+                nd2 = st.number_input("d2(Coeficiente de y en  x')", value=0.0, step=1.0, key="n_d2")
+                ne2 = st.number_input("e2(Coeficiente de y en  y')", value=0.0, step=1.0, key="n_e2")
             submitted = st.form_submit_button("Simular", width="stretch")
             input_data = (
                 f"2\n{na1} {nb1} {nc1} {nd1} {ne1}\n"
@@ -348,7 +358,7 @@ with st.sidebar:
             parsed["system_label"] = system_label
             parsed["fig"] = None
             parsed["html"] = None
-            if proc.returncode == 0 and parsed["unique"]:
+            if proc.returncode == 0:
                 if os.path.exists("trajectories.csv"):
                     parsed["df"] = pd.read_csv("trajectories.csv")
                     parsed["fig"] = build_figure(parsed["df"])

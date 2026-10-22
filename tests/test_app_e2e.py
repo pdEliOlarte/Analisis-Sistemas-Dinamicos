@@ -67,7 +67,10 @@ def main():
     check("NO ES UNICO" in t, "mensaje NO ES UNICO en informe")
     res = at.session_state["result"]
     check(res is not None and res.get("unique") is False, "unique=False")
-    check(res is not None and res.get("fig") is None, "sin grafica cuando no unico")
+    check(res is not None and res.get("fig") is not None, "grafica presente aun si no unico")
+    html = (res or {}).get("html") or ""
+    check("<!DOCTYPE html>" in html and "NO ES UNICO" in (res or {}).get("raw", ""),
+          "informe HTML generado para caso no unico")
 
     # --- 4. cambio a no lineal: limpia resultado, muestra inputs nuevos ---
     at.radio[0].set_value("Sistema no lineal").run()
@@ -97,7 +100,7 @@ def main():
     if fails:
         print(f"RESULTADO: {len(fails)} fallaron")
         sys.exit(1)
-    print("RESULTADO: TODO OK (5 escenarios e2e, 19 checks)")
+    print("RESULTADO: TODO OK (5 escenarios e2e, 20 checks)")
     sys.exit(0)
 
 
